@@ -8,7 +8,7 @@ python app.py
 ```
 
 ## 使用
-访问`IP:端口`查看fastapi自带的文档(默认端口是`5000`)
+访问`IP:端口`查看`Fastapi`自带的文档(默认端口是`5000`)
 
 ## 谢谢它和他们
 - [JMComic-Crawler-Python](https://github.com/hect0x7/JMComic-Crawler-Python)
