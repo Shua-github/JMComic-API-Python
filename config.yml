@@ -1,4 +1,4 @@
-main:
+app:
   host: 0.0.0.0 #绑定的IP
   port: 5000 #绑定的端口号
   temp_output: temp_output #输出缓存
