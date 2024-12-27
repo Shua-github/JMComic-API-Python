@@ -60,8 +60,8 @@ try:
 except Exception as e:   
     exit(f'"导入程序配置发生报错,请检查配置\n{e}"')  
 
-# 下载本子
-def jm_download(request:Request,direct:Optional[str],id:Optional[int],type:Optional[str],name:Optional[str]):
+@app.get("/jm_download")
+def jm_download(request: Request, direct: Optional[str], id: Optional[int], type: Optional[str], name: Optional[str]):
     if type in type_list:
         try:
             download(id, jm_option)
@@ -84,7 +84,7 @@ def direct_if(request:Request,direct:Optional[str],id:Optional[int],type:Optiona
     try:
         if direct == "False": 
             return {"code": 200,"data":{"id":id,"type":f"{type}","url": f"{file_url}"}}
-        elif direct == None or str:
+        elif direct or direct == None:
             return RedirectResponse(f"{file_url}")
     except Exception as e:
         return {"code": 500, "data":{"msg": "发生错误请联系管理员", "log": f"错误:{e} in function direct_if with name={name}"}}
@@ -96,7 +96,7 @@ def to_docs(request:Request):
     return RedirectResponse(f"{url}docs")
 
 # 文件服务
-@app.get("/jm_file/{name}")
+@app.get("/jm_file/{file_name}")
 def jm_file(file_name: str):
     try:
         # 返回文件
