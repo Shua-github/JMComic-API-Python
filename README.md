@@ -2,9 +2,9 @@
 
 ## 运行
 ```
-git clone https://github.com/Shua-github/JMComic-API-Python.git
-cd JMComic-API-Python
-python app.py
+git clone https://github.com/Shua-github/JMComic-API-Python.git #拉取
+cd JMComic-API-Python #进入文件夹
+python app.py #启动
 ```
 
 ## 使用
