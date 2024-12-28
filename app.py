@@ -3,7 +3,7 @@ from jmcomic import create_option_by_str as read_jm_option
 from os.path import exists
 from os import makedirs
 import inspect
-from instance import instance
+import instance
 
 jm_config = {
     'dir_rule': {'base_dir': ''},
@@ -20,13 +20,6 @@ jm_config = {
 
 type_list = ["pdf", "zip"] 
 app = FastAPI()
-# 动态绑定类方法为路由
-def bind_routes_from_class(app, instance):
-    for name, method in inspect.getmembers(instance, predicate=inspect.ismethod):
-        if name.startswith("__"):
-            continue
-        route_path = f"/{name}"
-        app.add_api_route(route_path, method, methods=["GET", "POST"], name=name)
 
 
 
@@ -60,11 +53,10 @@ try:
     if not exists(temp_image):  
         makedirs(temp_image) 
 except Exception as e:   
-    exit(f'"导入程序配置发生报错,请检查配置\n{e}"')  
+    exit(f'"导入程序配置发生报错,请检查配置\n{e}"')
 # -----------------配置-----------------
 
 if __name__ == '__main__':
-    jm_instance = instance(jm_option, temp_output, temp_image, type_list)
-    bind_routes_from_class(app, jm_instance)
+    app.include_router(instance.getRouter(jm_option, temp_output, temp_image, type_list))
     from uvicorn import run
     run(app, host=host, port=port)
