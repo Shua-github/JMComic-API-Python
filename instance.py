@@ -1,6 +1,5 @@
 from fastapi import Request, Query
 from fastapi.responses import FileResponse, RedirectResponse
-from typing import Optional
 from os.path import exists, join
 
 # 模拟 jmcomic 的部分功能
@@ -22,12 +21,12 @@ class instance:
     async def direct_if(
         self,
         request: Request,
-        direct: Optional[str] = Query("False", description="是否直接下载"),
+        direct: str = Query("False", description="是否直接下载"),
         id: int = Query(..., description="本子 ID"),
         type: str = Query("pdf", description="文件类型"),
         name: str = Query(..., description="文件名")
     ):
-        file_url = request.url_for("jm_file", file_name=name)
+        file_url = request.url_for("jm_file", file_name=str(name))
         try:
             if direct == "False":
                 return {"code": 200, "data": {"id": id, "type": type, "url": file_url}}
@@ -39,7 +38,7 @@ class instance:
     async def jm_download(
         self,
         request: Request,
-        direct: Optional[str] = Query("False", description="是否直接下载"),
+        direct: str = Query("False", description="是否直接下载"),
         id: int = Query(..., description="本子 ID"),
         type: str = Query("pdf", description="文件类型"),
         name: str = Query(..., description="文件名")
@@ -70,8 +69,8 @@ class instance:
         self,
         request: Request,
         id: int = Query(..., description="本子 ID"),
-        direct: Optional[str] = Query("False", description="是否直接下载"),
-        type: Optional[str] = Query("pdf", description="文件类型")
+        direct: str = Query("False", description="是否直接下载"),
+        type: str = Query("pdf", description="文件类型")
     ):
         file_name = f"{id}.{type}"
         path = join(self.temp_output, file_name)

@@ -23,11 +23,10 @@ app = FastAPI()
 # 动态绑定类方法为路由
 def bind_routes_from_class(app, instance):
     for name, method in inspect.getmembers(instance, predicate=inspect.ismethod):
-        if not name.startswith("_"):
-            async def route_func(request,_method=method,**kwargs, ):
-                return await _method(instance, request=request, **kwargs)
-
-            app.add_api_route(f"/{name}", route_func, methods=["GET", "POST"])
+        if name.startswith("__"):
+            continue
+        route_path = f"/{name}"
+        app.add_api_route(route_path, method, methods=["GET", "POST"], name=name)
 
 
 
@@ -65,6 +64,7 @@ except Exception as e:
 # -----------------配置-----------------
 
 if __name__ == '__main__':
-    bind_routes_from_class(app, instance(jm_option, temp_output, temp_image, type_list))
+    jm_instance = instance(jm_option, temp_output, temp_image, type_list)
+    bind_routes_from_class(app, jm_instance)
     from uvicorn import run
     run(app, host=host, port=port)
