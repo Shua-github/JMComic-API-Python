@@ -4,6 +4,7 @@
 ```
 git clone https://github.com/Shua-github/JMComic-API-Python.git #拉取
 cd JMComic-API-Python #进入文件夹
+pip install -r requirements.txt #安装依赖
 python app.py #启动
 ```
 
