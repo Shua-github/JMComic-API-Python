@@ -1,3 +1,4 @@
 temp_output
 temp_image
-__pycache__
+**/__pycache__/
+venv
