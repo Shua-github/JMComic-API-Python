@@ -1,4 +1,4 @@
-from .JMComicAPICore import run
+from JMComicAPICore import run
 
 # 配置路径
 config_path = "config.yml"
