@@ -1,5 +1,5 @@
 from yaml import safe_load
-from os.path import exists
+from .file import file_if
 from os import makedirs
 from jmcomic import create_option_by_str as read_jm_option
 from typing import Union
@@ -20,37 +20,73 @@ default_jm_config = {
 
 class Config:
     def __init__(self, config_path: str):
-        """构造函数，读取配置文件并初始化配置"""
+        """
+        初始化 Config 类，读取配置文件并初始化配置参数。
+
+        参数:
+        - config_path (str): 配置文件的路径
+        """
         self.config_path = config_path
-        self.config = self._read_config(config_path=config_path)  # 将返回的配置保存为实例变量
+        self.config = self._read_config(config_path=config_path)  # 调用读取配置文件的方法
 
     @staticmethod
     def open_config(config_path: str):
-        """打开yaml配置文件并返回字典"""
+        """
+        打开并读取 YAML 配置文件。
+
+        参数:
+        - config_path (str): 配置文件路径
+
+        返回:
+        - dict: 解析后的配置字典
+        """
         try:
             with open(config_path, "r", encoding="utf-8") as file:
-                return safe_load(file)  # 这里返回的是已经解析过的字典
+                return safe_load(file)  # 返回解析后的字典
         except FileNotFoundError:
             raise FileNotFoundError(f"配置文件未找到: {config_path}")
         except Exception as e:
             raise RuntimeError(f"读取配置文件时发生错误: {e}")
 
+    def _create_directory(self, directory: str):
+        """
+        确保目录存在，如果不存在则创建。
+
+        参数:
+        - directory (str): 目录路径
+        """
+        if not file_if(directory):
+            makedirs(directory)
+
     def _read_config(self, config_path: str):
-        """读取并解析配置文件"""
+        """
+        读取并解析配置文件内容。
+
+        参数:
+        - config_path (str): 配置文件路径
+
+        返回:
+        - dict: 配置字典
+
+        异常：
+        - KeyError: 如果配置文件缺少必需的字段
+        - RuntimeError: 其他错误
+        """
         try:
-            # 读取配置文件内容
+            # 读取配置文件
             file = self.open_config(config_path)
 
-            # 临时配置，存储临时文件路径
-            self.temp_image = file["core"]["temp_image"]  # 确保这里读取正确
-            self.temp_output = file["core"]["temp_output"]  # 确保这里读取正确
+            # 从配置中提取临时路径配置
+            self.temp_image = file["core"]["temp_image"]
+            self.temp_output = file["core"]["temp_output"]
 
             # 配置 jmcomic
             jm = file["jm"]
             if file["core"]["jm_switch"]:
-                jm_config = read_jm_option(jm)  # 根据配置调用 jmcomic 配置
+                # 如果启用 jm_switch，读取 jmcomic 配置
+                jm_config = read_jm_option(jm)
             else:
-                # 如果未开启 jm_switch, 使用默认的配置并合并
+                # 如果禁用 jm_switch，使用默认配置并合并
                 custom_jm_config = default_jm_config.copy()
                 custom_jm_config["dir_rule"]["base_dir"] = self.temp_image
                 custom_jm_config["plugins"]["after_album"][0]["kwargs"]["pdf_dir"] = self.temp_output
@@ -58,12 +94,10 @@ class Config:
                 jm_config = read_jm_option(str(custom_jm_config))
 
             # 确保必要的目录存在
-            if not exists(self.temp_output):
-                makedirs(self.temp_output)
-            if not exists(self.temp_image):
-                makedirs(self.temp_image)
+            self._create_directory(self.temp_output)
+            self._create_directory(self.temp_image)
 
-            # 保存并返回配置
+            # 保存最终的 jm 配置和支持的文件格式
             self.jm_config = jm_config
             self.supported_formats = file["core"]["supported_formats"]
 
