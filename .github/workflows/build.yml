@@ -1,4 +1,4 @@
-name: Build Nuitka Project
+name: Build App
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # 选择使用 Ubuntu 操作系统
+    runs-on: windows-latest
 
     steps:
       - name: Checkout code
@@ -31,3 +31,8 @@ jobs:
           mode: onefile
           nuitka-version: main
           
+      - name: Upload build files
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-app  # Artifact 的名称，可以自定义
+          path: build/         # 上传的文件或目录的路径
