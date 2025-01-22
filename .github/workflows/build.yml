@@ -28,7 +28,7 @@ jobs:
 
     - name: Compile with Nuitka
       run: |
-        nuitka --standalone --onefile --output-dir=./build app.py
+        nuitka --standalone --output-dir=./build app.py
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3  # 使用最新的 v3 版本上传构建产物
