@@ -28,8 +28,7 @@ jobs:
 
     - name: Compile with Nuitka
       run: |
-        set NO_INTERACTION=1
-        nuitka --standalone --onefile --output-dir=./build app.py
+        echo "Yes" | set NO_INTERACTION=1 && nuitka --standalone --onefile --output-dir=./build app.py
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3  
