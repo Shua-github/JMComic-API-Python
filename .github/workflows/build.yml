@@ -21,17 +21,18 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt 
+        pip install -r requirements.txt
 
     - name: Install Nuitka
       run: pip install nuitka  # 安装 Nuitka 编译工具
 
     - name: Compile with Nuitka
       run: |
-        nuitka --standalone --output-dir=./build app.py
+        set NO_INTERACTION=1
+        nuitka --standalone --onefile --output-dir=./build app.py
 
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v3  # 使用最新的 v3 版本上传构建产物
+      uses: actions/upload-artifact@v3  
       with:
         name: compiled-app  # 上传的 artifact 名称
         path: ./build/  # 构建目录
