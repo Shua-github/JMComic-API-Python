@@ -14,7 +14,7 @@
 4. 运行`app.py`
 
 ## 配置
-默认监听地址在`app.py`,核心在`config.yml`
+网络在`RunConfig.yml`,核心在`CoreConfig.yml`
 
 ## 使用
 访问`IP:端口/docs`查看`FastAPI`自带的文档(默认端口是`5000`)

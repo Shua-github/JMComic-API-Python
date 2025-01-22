@@ -1,0 +1,37 @@
+name: Build GUI Application
+
+on: 
+  push:
+    branches:
+      - main  # 分支名
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Install Nuitka
+      run: pip install nuitka
+
+    - name: Compile with Nuitka
+      run: |
+        nuitka --standalone --onefile --output-dir=./build app.py
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: compiled-app
+        path: ./build/
