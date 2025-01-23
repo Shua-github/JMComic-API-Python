@@ -14,16 +14,16 @@
 3. 运行`app.exe`
 
 ### 其它
-1. 环境:理论`Python`>=3.7以上均可(推荐使用3.12)
+1. 环境:理论`Python`>=`3.7`均可(推荐使用`3.12`)
 2. 拉取本项目```git clone https://github.com/Shua-github/JMComic-API-Python.git```
 3. 运行`venv_config.sh`
 4. 执行`python app.py`
 
-## 配置
-网络在`RunConfig.yml`,核心在`CoreConfig.yml`
+## 默认配置
+`网络配置`和`核心配置路径`在`RunConfig.yml`,`核心配置`在`CoreConfig.yml`
 
 ## 使用
-访问`IP:端口/docs`查看`FastAPI`自带的文档(默认端口是`5000`)
+访问`主机:端口/docs`查看`FastAPI`自带的文档(默认端口是`5000`)
 
 ## 谢谢他们和它们
 - [JMComic-Crawler-Python](https://github.com/hect0x7/JMComic-Crawler-Python)

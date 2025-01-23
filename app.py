@@ -12,7 +12,7 @@ class Config:
         server_config:dict = config_dict.get('net')
         host = server_config.get('host')
         port = server_config.get('port')
-        core_path = server_config.get('core_config_path')
+        core_path = config_dict.get('core_config_path')
         return cls(host, port, core_path)
 
 # 读取 YAML 配置文件并返回 Config 实例
