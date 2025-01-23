@@ -104,4 +104,4 @@ class Config:
         except KeyError as e:
             raise KeyError(f"配置文件缺少必要的字段: {e}")
         except Exception as e:
-            raise RuntimeError(f"读取配置时发生错误: {e}")
+            raise RuntimeError(f"{e}")

@@ -84,6 +84,5 @@ class FastAPIApp:
         参数:
         - host (str): 服务器地址
         - port (int): 端口号
-        - reload (bool): 是否启用代码热重载（默认开发环境使用）
         """
         uvicorn.run(self.app, host=host, port=port)

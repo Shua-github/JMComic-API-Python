@@ -1,9 +1,9 @@
 core:
   temp_output: temp_output #输出缓存
   temp_image: temp_image #图像缓存
-  jm_switch: False #是否开启外置jm库配置,默认使用内置配置
-  supported_formats: [pdf,zip] #支持的格式,没事请勿修改
-jm: # 警告!下面是外置jm库配置,没事请勿修改
+  jm_switch: False #是否开启外置jm库配置,正常使用无需开启
+  supported_formats: [pdf,zip] #支持的格式,正常使用无需修改
+jm: # 警告!下面是外置jm库配置
   dir_rule:
     base_dir: '' #图像缓存目录
   download:
