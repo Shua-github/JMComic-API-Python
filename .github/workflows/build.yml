@@ -6,7 +6,8 @@ on:
       - main  # 监听 main 分支上的 push 事件
     paths:
       - '**/*.py'          # 监听所有 .py 文件
-      - 'requirements.txt' # 监听 requirements.txt 文件
+      - 'pyproject.toml'
+      - 'pdm.lock'
 
 jobs:
   build:
@@ -22,19 +23,23 @@ jobs:
           python-version: '3.12'  # 配置 Python 版本
           architecture: 'x64'
 
-      - name: Install Requirements
+      - name: Install PDM
         run: |
-          pip install -r requirements.txt
+          python -m pip install pdm
 
-      - name: Run Nuitka build with app.py
+      - name: Install Dependencies
+        run: |
+          pdm install --production
+
+      - name: Run Nuitka build with onefile mode
         uses: Nuitka/Nuitka-Action@main
         with:
-          script-name: app.py
+          script-name: jmcomic_api/__main__.py
           mode: onefile
           nuitka-version: main
 
       - name: Upload build files
         uses: actions/upload-artifact@v4
         with:
-          name: build-app  # Artifact 的名称，可以自定义
+          name: build-ok-app  # Artifact 的名称，可以自定义
           path: build/     # 上传的文件或目录的路径

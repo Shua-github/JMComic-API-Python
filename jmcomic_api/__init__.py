@@ -1,0 +1,1 @@
+from .JMComicAPICore import (run,return_app as app,FastAPI_App)
