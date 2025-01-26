@@ -14,7 +14,7 @@
 3. 运行`app.exe`
 
 ### 其它
-1. 环境:理论`Python`>=`3.7`均可(推荐使用`3.12`)
+1. 环境:理论`Python`>=`3.10`均可(推荐使用`3.12`)
 2. 拉取本项目```git clone https://github.com/Shua-github/JMComic-API-Python.git```
 3. 运行`venv_config.sh`
 4. 执行`python app.py`

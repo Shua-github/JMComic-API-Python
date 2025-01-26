@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main  # 监听 main 分支上的 push 事件
+    paths:
+      - '**/*.py'          # 监听所有 .py 文件
+      - 'requirements.txt' # 监听 requirements.txt 文件
 
 jobs:
   build:
@@ -21,8 +24,7 @@ jobs:
 
       - name: Install Requirements
         run: |
-            pip install -r requirements.txt
-      
+          pip install -r requirements.txt
 
       - name: Run Nuitka build with app.py
         uses: Nuitka/Nuitka-Action@main
@@ -30,9 +32,9 @@ jobs:
           script-name: app.py
           mode: onefile
           nuitka-version: main
-          
+
       - name: Upload build files
         uses: actions/upload-artifact@v4
         with:
           name: build-app  # Artifact 的名称，可以自定义
-          path: build/         # 上传的文件或目录的路径
+          path: build/     # 上传的文件或目录的路径
