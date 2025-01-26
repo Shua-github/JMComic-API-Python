@@ -1,11 +1,31 @@
+from fastapi.responses import FileResponse, RedirectResponse, JSONResponse
 from fastapi import FastAPI, Request, Query
 from typing import Literal
 import inspect
 import uvicorn
 from . import download, file_service
-from typing import Union,List
+from .utils import CustomError,CustomHTTPException,_Dict
+def FastAPI_response_treat(data:_Dict):
+    """
+    返回 JSON 响应。
 
-class FastAPIApp:
+    参数:
+    - data (dict): JSON 数据
+
+    返回:
+    - 响应对象
+    """
+    match data['type']:
+        case 'json':
+            return JSONResponse(status_code=data['code'],content=data)
+        case 'file':
+            return FileResponse(data['data']['path'])
+        case 'redirect':
+            return RedirectResponse(url=data['data']['url'])
+        case _:
+            raise CustomError.unknown_error(log="没有匹配到类型")
+        
+class FastAPI_App:
     def __init__(self, config_path: str):
         """
         初始化 FastAPI 应用实例，并绑定路由。
@@ -27,14 +47,18 @@ class FastAPIApp:
         返回:
         - FileResponse: 文件响应
         """
-        return await file_service.jm_file(file_name=file_name, config_path=self.config_path)
+        try:
+            return FastAPI_response_treat(await file_service.jm_file(file_name=file_name, config_path=self.config_path))
+        except CustomError as e:
+            raise CustomHTTPException(e)
 
-    async def jm_api(self, file_type: Literal["pdf", "zip"], request: Request, direct: Literal["true", "false"] = "false", jm_id: Union[int]=Query(...)):
+
+    async def jm_api(self, file_type: Literal["pdf", "zip"], request: Request, direct: Literal["true", "false"] = "false", jm_id: int = Query(...)):
         """
         下载 API，判断是否需要直接返回下载链接或通过下载器下载。
 
         参数:
-        - jm_id (int,list): 漫画 ID 或 漫画 ID 列表
+        - jm_id (int, list): 漫画 ID 或 漫画 ID 列表
         - file_type (Literal["pdf", "zip"]): 文件类型
         - request (Request): FastAPI 请求对象
         - direct (Literal["true", "false"]): 是否直接返回下载链接
@@ -42,7 +66,13 @@ class FastAPIApp:
         返回:
         - Response: 下载链接或下载响应
         """
-        return await download.jm_download(jm_id, file_type, request=request, config_path=self.config_path, direct=direct)
+        try:
+            # 使用 await 等待协程结果
+            result = await download.jm_download(jm_id, file_type, request=request, config_path=self.config_path, direct=direct)
+            # 将结果传递给 FastAPI_response_treat
+            return FastAPI_response_treat(result)
+        except CustomError as e:
+            raise CustomHTTPException(e)
 
     def _bind_routes(self):
         """
