@@ -1,24 +1,27 @@
 [project]
 name = "jmcomic_api"
-version = "0.2.0.1"
+version = "0.4.0.1"
 description = "A Python crawler for downloading content from JMComic."
 authors = [
     {name = "Shua", email = "CHA_shua@outlook.com"},
 ]
 dependencies = [
-    "fastapi>=0.100.0",
-    "jmcomic>=2.0.0",
+    "fastapi>=0.115.12",
+    "jmcomic>=2.5.32",
     "PyYAML>=6.0",
-    "uvicorn>=0.21.0",
-    "img2pdf>=0.4.0",
+    "uvicorn>=0.34.0",
+    "img2pdf>=0.6.0",
     "colorlog>=6.7.0",
+    "pydantic>=2.10.6",
+    "pypdf>=5.4.0",
+    "requests>=2.32.3",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.8"
 readme = "README.md"
 license = {text = "MIT"}
 
 [project.scripts]
-jmcomic_api = "jmcomic_api.__main__:main"
+jmcomic-api-server = "jmcomic_api:main"
 
 # 使用 setuptools 作为构建系统
 [build-system]
@@ -29,6 +32,14 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages]
 find = {where = ["."], exclude = ["tests*"]}  # 动态发现包，排除测试文件
 
-# 可选：添加项目的包数据（如配置文件）
-[tool.setuptools.package-data]
-jmcomic_api = ["data/*.yml"]
+[tool.pdm.scripts]
+dev = {call = "jmcomic_api:main", env = {DEV = "true"} } # dev启动
+start = {call = "jmcomic_api:main"} # 正常启动
+uninstall = "pdm remove" # 卸载
+install = "pdm add" # 安装
+build = "pdm build" # 打包
+
+[dependency-groups]
+dev = [
+    "jurigged>=0.6.0",
+]
