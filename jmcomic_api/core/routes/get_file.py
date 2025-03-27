@@ -18,11 +18,11 @@ def fetch_images(jm_id: int, output_dir: str, img_format: str = 'PNG', no_cache:
     
     # 检查是否存在文件夹
     if os.path.exists(output_dir) and not no_cache:
-        image_files = [os.path.join(output_dir, f) for f in os.listdir(output_dir) if f.endswith(f'.{img_format}')]
-        if not os.listdir(output_dir):  # 再次确认文件夹为空
-            os.rmdir(output_dir)  # 删除空文件夹
-        else:
+        image_files = [os.path.join(output_dir, f) for f in os.listdir(output_dir) if f.endswith(f'.{img_format.lower()}')]
+        if image_files:  # 如果文件夹中存在图片文件
             return image_files
+        else:  # 如果文件夹为空，删除文件夹
+            os.rmdir(output_dir)
     
     os.makedirs(output_dir, exist_ok=True)
     
@@ -32,7 +32,7 @@ def fetch_images(jm_id: int, output_dir: str, img_format: str = 'PNG', no_cache:
     images_path: List[str] = []
     
     for image_data in image_data_list:
-        img_save_path = os.path.join(output_dir,f"{image_data.img_file_name}.{img_format.lower()}")
+        img_save_path = os.path.join(output_dir, f"{image_data.img_file_name}.{img_format.lower()}")
         client.download_by_image_detail(image_data, img_save_path, decode_image=True)
         images_path.append(img_save_path)
     
@@ -85,8 +85,13 @@ class GetFile(Route):
             def file_iterator():
                 while chunk := encrypted_file.read(1024 * 1024):  # 每次读取 1MB
                     yield chunk
-            return StreamingResponse(file_iterator(), media_type="application/octet-stream", headers={
-                "Content-Disposition": f"attachment; filename={jm_id}.{file_type}"
-            })
+            return StreamingResponse(
+                file_iterator(),
+                media_type="application/octet-stream",
+                headers={
+                    "Content-Disposition": f"attachment; filename={jm_id}.{file_type}",
+                    "X-File-Type": file_type  # 添加文件格式头
+                }
+            )
         
         return JSONResponse(content=return_data)

@@ -1,6 +1,6 @@
 [project]
 name = "jmcomic_api"
-version = "0.4.0.1"
+version = "0.4.0.3"
 description = "A Python crawler for downloading content from JMComic."
 authors = [
     {name = "Shua", email = "CHA_shua@outlook.com"},
@@ -38,6 +38,7 @@ start = {call = "jmcomic_api:main"} # 正常启动
 uninstall = "pdm remove" # 卸载
 install = "pdm add" # 安装
 build = "pdm build" # 打包
+publish = 'twine upload dist/*' # 上传pypi
 
 [dependency-groups]
 dev = [

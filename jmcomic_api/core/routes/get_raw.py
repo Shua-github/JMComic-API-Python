@@ -12,6 +12,7 @@ class GetRaw(Route):
         self.path = '/get/raw'
         
     async def route_def(
+        self,
         jm_id: int = Query(..., title='本子ID', description='本子ID'),
         types: List[Literal['info', 'img_url_list']] = Query(..., title='需要的数据列表', description='需要的数据列表')
     ) -> JSONResponse:
