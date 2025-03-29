@@ -1,97 +1,135 @@
-from fastapi import Query
-from fastapi.responses import JSONResponse, StreamingResponse
-from typing import Literal, List, Dict
-from jmcomic_api._libs import jm_api
-from jmcomic_api._utils.env import JM_CONFIG
-from jmcomic_api._utils.file import images_encrypted
+from fastapi import Query, Request
+from fastapi.responses import (
+    JSONResponse,
+    StreamingResponse,
+)
+from typing import Literal, Dict
+from jmcomic_api._utils.file import (
+    merge_images_to_file,
+    encrypt_file,
+    GetCacheFilePath,
+)
+from jmcomic_api._utils.env import IMG_FORMAT
 from jmcomic_api.models.core.route import Route
+from jmcomic_api.core.main import add_temporary_route
 import os
 import base64
+from io import BytesIO
 
-def fetch_images(jm_id: int, output_dir: str, img_format: str = 'PNG', no_cache: bool = False) -> List[str]:
-    """
-    下载本子
-    """
-    output_dir = os.path.join(output_dir, str(jm_id))
-    
-    client = JM_CONFIG.build_jm_client()
-    
-    # 检查是否存在文件夹
-    if os.path.exists(output_dir) and not no_cache:
-        image_files = [os.path.join(output_dir, f) for f in os.listdir(output_dir) if f.endswith(f'.{img_format.lower()}')]
-        if image_files:  # 如果文件夹中存在图片文件
-            return image_files
-        else:  # 如果文件夹为空，删除文件夹
-            os.rmdir(output_dir)
-    
-    os.makedirs(output_dir, exist_ok=True)
-    
-    # 获取详情和图片数据列表
-    album, image_data_list = jm_api.get_album_images(jm_id)
-    
-    images_path: List[str] = []
-    
-    for image_data in image_data_list:
-        img_save_path = os.path.join(output_dir, f"{image_data.img_file_name}.{img_format.lower()}")
-        client.download_by_image_detail(image_data, img_save_path, decode_image=True)
-        images_path.append(img_save_path)
-    
-    return images_path
 
 class GetFile(Route):
     def __init__(self):
-        self.method = ['GET']
-        self.path = '/get/file'
-    
-    def config(self,output_dir:str):
+        self.method = ["GET"]
+        self.path = "/get/file"
+
+    def config(self, output_dir: str):
         self.output_dir = output_dir
-        
+
     async def route_def(
         self,
-        jm_id: int = Query(..., title='本子ID', description='本子ID'),
-        file_type: Literal['pdf', 'zip'] = Query(..., title='文件格式', description='文件格式'),
-        file_pwd: str = Query(None, title='文件密码', description='文件密码'),
-        no_cache: Literal['true','false'] = Query('false', title='是否绕过缓存', description='是否绕过缓存'),
-        return_method: Literal['from-data','base64'] = Query('base64', title='返回方式', description='返回方式'),
+        request: Request,
+        jm_id: int = Query(..., title="本子ID", description="本子ID"),
+        file_type: Literal["pdf", "zip"] = Query(
+            ..., title="文件格式", description="文件格式"
+        ),
+        file_pwd: str = Query(None, title="文件密码", description="文件密码"),
+        return_method: Literal["from-data", "base64", "url"] = Query(
+            "base64",
+            title="返回方式",
+            description="返回方式",
+        ),
     ) -> JSONResponse:
+        get_cache_path = GetCacheFilePath(self.output_dir, jm_id).get
+        file_name = f"{jm_id}.{file_type}"
         return_data: Dict = {
-            'code': 200,
-            'status': 'OK', 
-            'data': {
-                'jm_id': jm_id,
-                'file_type': file_type,
-                'file_pwd': file_pwd,
-                'no_cache': no_cache,
-                'file': None,
-                }
-            }
+            "code": 200,
+            "status": "OK",
+            "data": {
+                "jm_id": jm_id,
+                "file_name": file_name,
+                "file_type": file_type,
+                "file_pwd": file_pwd,
+                "file": None,
+            },
+        }
 
-        if no_cache == 'false':
-            no_cache = False
-        elif no_cache == 'true':
-            no_cache = True
-        
-        out_img_paths = fetch_images(jm_id=jm_id, output_dir=self.output_dir, no_cache=no_cache)
+        img_dir = get_cache_path(IMG_FORMAT.lower())
+        if not os.path.exists(img_dir) or not os.listdir(img_dir):
+            return JSONResponse(
+                content={
+                    "code": 400,
+                    "status": "error",
+                    "data": {
+                        "msg": "图片未下载",
+                        "log": "图片未下载",
+                    },
+                },
+                status_code=400,
+            )
 
-        if not out_img_paths:  # 检查 out_img_paths 是否为空
-            raise ValueError("生成的图片路径列表为空，无法处理文件")
-        
-        encrypted_file = images_encrypted(image_paths=out_img_paths, password=file_pwd, out_file_format=file_type)
-        encrypted_file.seek(0)  # 确保文件指针在开头
-        
-        if return_method == 'base64':
-            return_data['data']['file'] = base64.b64encode(encrypted_file.read()).decode('utf-8')
-        elif return_method == 'from-data':
+        out_img_paths = []  # 用于存储符合条件的图片路径
+
+        # 获取每个章节的图片路径，按章节命名文件夹，避免文件名冲突
+        for chapter_index, chapter_data in enumerate(os.listdir(img_dir)):
+            chapter_path = os.path.join(img_dir, chapter_data)
+            if os.path.isdir(chapter_path):
+                chapter_name = chapter_data  # 章节名  # noqa: F841
+                for f in os.listdir(chapter_path):
+                    if f.endswith(f".{IMG_FORMAT.lower()}"):
+                        full_path = os.path.join(chapter_path, f)
+                        # 使用章节名加图片文件名来避免文件名冲突
+                        out_img_paths.append(full_path)
+
+        # 获取拼接过的zip或pdf
+        file: BytesIO = merge_images_to_file(out_img_paths, file_type)
+
+        # 获取路径
+        file_dir: str = os.path.join(get_cache_path(file_type))
+        file_path: str = os.path.join(file_dir, file_name)
+        os.makedirs(file_dir, exist_ok=True)
+
+        # 写入文件
+        with open(file_path, "wb") as f:
+            f.write(file.getvalue())
+
+        # 删除文件路径
+        del file_path
+
+        # 加密
+        if file_pwd:
+            file = encrypt_file(
+                input_file=file,
+                password=file_pwd,
+                file_type=file_type,
+            )
+
+        # 返回流式
+        async def return_streaming(file_name, file_type):
             def file_iterator():
-                while chunk := encrypted_file.read(1024 * 1024):  # 每次读取 1MB
+                while chunk := file.read(1024 * 1024):
                     yield chunk
+
             return StreamingResponse(
                 file_iterator(),
                 media_type="application/octet-stream",
                 headers={
-                    "Content-Disposition": f"attachment; filename={jm_id}.{file_type}",
-                    "X-File-Type": file_type  # 添加文件格式头
-                }
+                    "Content-Disposition": f"attachment; filename={file_name}",
+                    "X-File-Type": file_type,
+                },
             )
-        
+
+        # 返回逻辑
+        if return_method == "base64":
+            return_data["data"]["file"] = base64.b64encode(file.read()).decode("utf-8")
+        elif return_method == "from-data":
+            return await return_streaming(file_name=file_name, file_type=file_type)
+        elif return_method == "url":
+            base_url = str(request.base_url._url).rstrip("/")
+            url_path = f"/temp/{file_name}"
+
+            def call_back():
+                return return_streaming(file_name=file_name, file_type=file_type)
+
+            add_temporary_route(url_path, call_back)
+            return_data["data"]["file"] = f"{base_url}{url_path}"
         return JSONResponse(content=return_data)

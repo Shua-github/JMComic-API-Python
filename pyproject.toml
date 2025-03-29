@@ -1,6 +1,6 @@
 [project]
 name = "jmcomic_api"
-version = "0.4.0.3"
+version = "0.5.1.0"
 description = "A Python crawler for downloading content from JMComic."
 authors = [
     {name = "Shua", email = "CHA_shua@outlook.com"},
@@ -12,9 +12,10 @@ dependencies = [
     "uvicorn>=0.34.0",
     "img2pdf>=0.6.0",
     "colorlog>=6.7.0",
-    "pydantic>=2.10.6",
+    "pydantic>=2.11.0",
     "pypdf>=5.4.0",
     "requests>=2.32.3",
+    "pyzipper>=0.3.6",
 ]
 requires-python = ">=3.8"
 readme = "README.md"
@@ -38,9 +39,13 @@ start = {call = "jmcomic_api:main"} # 正常启动
 uninstall = "pdm remove" # 卸载
 install = "pdm add" # 安装
 build = "pdm build" # 打包
+format = 'ruff format .' # 格式化
+check = 'ruff check .' # 格式化
 publish = 'twine upload dist/*' # 上传pypi
 
 [dependency-groups]
 dev = [
     "jurigged>=0.6.0",
+    "ruff>=0.11.2",
+    "twine>=6.1.0",
 ]

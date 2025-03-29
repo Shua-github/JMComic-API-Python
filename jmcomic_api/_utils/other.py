@@ -1,4 +1,10 @@
-def get_object_members(obj, max_depth=20, current_depth=0, seen=None, seen_values=None):
+def get_object_members(
+    obj,
+    max_depth=20,
+    current_depth=0,
+    seen=None,
+    seen_values=None,
+):
     # 初始化集合
     if seen is None:
         seen = set()
@@ -23,10 +29,21 @@ def get_object_members(obj, max_depth=20, current_depth=0, seen=None, seen_value
     if isinstance(obj, dict):
         members = {}
         for k, v in obj.items():
-            processed_value = get_object_members(v, max_depth, current_depth + 1, seen, seen_values)
+            processed_value = get_object_members(
+                v,
+                max_depth,
+                current_depth + 1,
+                seen,
+                seen_values,
+            )
             try:
                 value_hash = repr(processed_value)  # 使用 repr 确保可哈希
-                if value_hash not in seen_values and processed_value not in (None, {}, [], ''):
+                if value_hash not in seen_values and processed_value not in (
+                    None,
+                    {},
+                    [],
+                    "",
+                ):
                     members[k] = processed_value
                     seen_values.add(value_hash)
             except TypeError:
@@ -38,10 +55,21 @@ def get_object_members(obj, max_depth=20, current_depth=0, seen=None, seen_value
     if isinstance(obj, (list, tuple, set)):
         result = []
         for item in obj:
-            processed_item = get_object_members(item, max_depth, current_depth + 1, seen, seen_values)
+            processed_item = get_object_members(
+                item,
+                max_depth,
+                current_depth + 1,
+                seen,
+                seen_values,
+            )
             try:
                 item_hash = repr(processed_item)
-                if item_hash not in seen_values and processed_item not in (None, {}, [], ''):
+                if item_hash not in seen_values and processed_item not in (
+                    None,
+                    {},
+                    [],
+                    "",
+                ):
                     result.append(processed_item)
                     seen_values.add(item_hash)
             except TypeError:
@@ -51,16 +79,27 @@ def get_object_members(obj, max_depth=20, current_depth=0, seen=None, seen_value
     # 处理其他对象
     members = {}
     for name in dir(obj):
-        if name.startswith('__') and name.endswith('__'):
+        if name.startswith("__") and name.endswith("__"):
             continue
 
         try:
             attr = getattr(obj, name)
-            processed_attr = get_object_members(attr, max_depth, current_depth + 1, seen, seen_values)
+            processed_attr = get_object_members(
+                attr,
+                max_depth,
+                current_depth + 1,
+                seen,
+                seen_values,
+            )
 
             try:
                 attr_hash = repr(processed_attr)
-                if attr_hash not in seen_values and processed_attr not in (None, {}, [], ''):
+                if attr_hash not in seen_values and processed_attr not in (
+                    None,
+                    {},
+                    [],
+                    "",
+                ):
                     members[name] = processed_attr
                     seen_values.add(attr_hash)
             except TypeError:
